@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CveeBee — Smart, Stunning, Job-Ready CVs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<!-- GSAP 3.12.5 + ScrollTrigger + TextPlugin from cdnjs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+<!-- QR Code bundled -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<style>
+/* ── TOKENS ── */
+:root {
+  --amber:       #8B4513;
+  --amber-mid:   #A0521A;
+  --amber-lt:    #C97D2E;
+  --amber-pale:  #E8A050;
+  --amber-glow:  rgba(139,69,19,0.18);
+  --amber-bg:    rgba(139,69,19,0.07);
+  --bg:          #FAFAF8;
+  --bg-warm:     #F7F3EE;
+  --bg-card:     #FFFFFF;
+  --border:      rgba(139,69,19,0.14);
+  --border-md:   rgba(139,69,19,0.30);
+  --text-1:      #1C1008;
+  --text-2:      #4A2E14;
+  --text-muted:  rgba(74,46,20,0.52);
+  --shadow-sm:   0 2px 14px rgba(139,69,19,0.08);
+  --shadow-md:   0 10px 36px rgba(139,69,19,0.18);
+  --shadow-lift: 0 20px 56px rgba(139,69,19,0.24), 0 4px 14px rgba(0,0,0,0.08);
+  --t:           all 0.32s cubic-bezier(0.23,1,0.32,1);
+  --flip-speed:  0.7s;
+}
+
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; }
+  .card-scene { perspective:none!important; }
+}
+
+body {
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  color:var(--text-1);
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:72px;
+  overflow-x:hidden;
+}
+
+/* ── DOT GRID ── */
+.bg-dots {
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:radial-gradient(circle, rgba(139,69,19,0.055) 1px, transparent 1px);
+  background-size:28px 28px;
+}
+
+/* ── PAGE ── */
+.page {
+  position:relative; z-index:1;
+  width:100%; max-width:430px;
+  padding:40px 18px 0;
+  display:flex; flex-direction:column;
+  align-items:center; gap:28px;
+  opacity:0; /* GSAP controls this */
+}
+
+/* ── LOGO HEADER ── */
+.logo-header {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  will-change:transform,opacity;
+}
+.logo-mark {
+  display:flex; align-items:center; gap:10px;
+}
+.logo-main-img {height: 200px; /* Increase to your desired size */
+  width: auto; 
+  margin-bottom: -70px; /* Adjust this negative value to fix the gap */ }
+.logo-rule {
+  width:52px; height:1.5px;
+  background:linear-gradient(90deg,transparent,var(--amber-pale),transparent);
+}
+.logo-tagline {
+  font-size:.625rem; font-weight:700; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--amber);
+}
+
+/* ── 3D FLIP CARD ── */
+.card-scene {
+  width:100%; max-width:390px;
+  height:232px;
+  perspective:1100px;
+  cursor:pointer;
+  will-change:transform;
+}
+.card-flipper {
+  position:relative; width:100%; height:100%;
+  transform-style:preserve-3d;
+  transition:transform var(--flip-speed) cubic-bezier(0.4,0.2,0.2,1);
+}
+.card-scene.flipped .card-flipper {
+  transform:rotateY(180deg);
+}
+.card-face {
+  position:absolute; inset:0;
+  border-radius:22px;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  overflow:hidden;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-lift);
+}
+
+/* FRONT */
+.card-front {
+  background:var(--bg-card);
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding:24px 26px 22px;
+}
+.card-front::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3.5px;
+  background:linear-gradient(90deg, var(--amber), var(--amber-pale), var(--amber-lt), var(--amber));
+  background-size:200% 100%;
+  animation:shimmer 3s linear infinite;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+.c-corner { position:absolute; width:18px; height:18px; z-index:4; }
+.c-tl { top:11px; left:11px; border-top:1.5px solid var(--amber-pale); border-left:1.5px solid var(--amber-pale); border-radius:3px 0 0 0; }
+.c-br { bottom:11px; right:11px; border-bottom:1.5px solid var(--amber-pale); border-right:1.5px solid var(--amber-pale); border-radius:0 0 3px 0; }
+
+.front-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.front-logo-wrap { display:flex; align-items:center; gap:8px; }
+.front-bee-img { width:46px; height:46px; flex-shrink:0; object-fit:contain; }
+.front-brand {
+  display:flex; flex-direction:column; gap:1px;
+}
+.front-brand-name {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.1rem; font-weight:600; color:var(--text-1); line-height:1;
+}
+.front-brand-name span { color:var(--amber); }
+.front-brand-sub {
+  font-size:.58rem; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--amber);
+}
+.front-badge { display:flex; flex-direction:column; align-items:flex-end; gap:2px; padding-top:2px; }
+.front-badge-flag { font-size:1.2rem; line-height:1; }
+.front-badge-label { font-size:.5rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--amber); }
+
+.front-pills { display:flex; gap:5px; flex-wrap:wrap; }
+.front-pill {
+  padding:4px 9px;
+  background:var(--amber-bg); border:1px solid var(--border);
+  border-radius:20px;
+  font-size:.58rem; font-weight:600; color:var(--amber-mid);
+  white-space:nowrap;
+}
+.front-pill.hot { background:var(--amber); color:white; border-color:var(--amber); }
+
+.front-bottom { display:flex; flex-direction:column; gap:5px; }
+.front-tagline {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.05rem; font-weight:400; font-style:italic;
+  color:var(--text-2); line-height:1.4;
+}
+.front-url { font-size:.64rem; font-weight:700; letter-spacing:.1em; color:var(--amber-mid); text-transform:uppercase; }
+.flip-hint {
+  position:absolute; bottom:10px; right:14px;
+  font-size:.48rem; font-weight:600; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--text-muted);
+  display:flex; align-items:center; gap:4px;
+  pointer-events:none;
+}
+.flip-hint svg { width:10px; height:10px; color:var(--amber-pale); }
+
+/* BACK — QR only */
+.card-back {
+  background:linear-gradient(145deg, #1C1008 0%, #2E1A0A 50%, #3D2210 100%);
+  transform:rotateY(180deg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:18px 22px; gap:14px;
+}
+.card-back::before {
+  content:''; position:absolute; inset:0; opacity:.06;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='64' viewBox='0 0 56 64'%3E%3Cpath d='M28 4 L52 18 L52 46 L28 60 L4 46 L4 18 Z' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");
+  background-size:40px 46px;
+}
+.back-qr-wrap {
+  background:white; border-radius:12px; padding:10px;
+  box-shadow:0 6px 24px rgba(0,0,0,0.4); z-index:1;
+}
+.back-qr { width:120px; height:120px; display:block; border-radius:4px; }
+.back-scan { font-size:.52rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,0.5); z-index:1; text-align:center; }
+
+/* ── STATS ── */
+.stats-row {
+  width:100%;
+  display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+}
+.stat-card {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:12px; padding:13px 7px;
+  text-align:center; display:flex; flex-direction:column; gap:3px;
+  box-shadow:var(--shadow-sm);
+  will-change:transform,opacity;
+}
+.stat-num {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.2rem; font-weight:600; color:var(--amber); line-height:1;
+}
+.stat-lbl {
+  font-size:.54rem; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--text-muted); line-height:1.3;
+}
+
+/* ── SECTION ── */
+.section { width:100%; }
+.sec-head { display:flex; flex-direction:column; align-items:center; gap:5px; margin-bottom:16px; }
+.sec-eye {
+  font-size:.58rem; font-weight:700; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--amber);
+}
+.sec-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem; font-weight:600; color:var(--text-1);
+}
+.sec-rule { width:38px; height:1.5px; background:linear-gradient(90deg,transparent,var(--amber-pale),transparent); }
+
+/* ── PACKAGES ── */
+.pkg-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.pkg-card {
+  position:relative;
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:14px; padding:16px 14px;
+  box-shadow:var(--shadow-sm);
+  text-decoration:none; display:block;
+  will-change:transform,opacity;
+  overflow:hidden;
+}
+.pkg-card::after {
+  content:''; position:absolute; inset:0; border-radius:14px;
+  background:linear-gradient(135deg, transparent 60%, rgba(139,69,19,0.04));
+  pointer-events:none;
+}
+.pkg-card.featured {
+  border-color:var(--amber-mid);
+  background:linear-gradient(148deg,#FFFCF6,white);
+}
+.pkg-best {
+  position:absolute; top:0; right:0;
+  background:var(--amber); color:white;
+  font-size:.48rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  padding:4px 9px; border-radius:0 14px 0 8px;
+}
+.pkg-emoji { font-size:1rem; display:block; margin-bottom:6px; }
+.pkg-name { font-size:.78rem; font-weight:700; color:var(--text-1); margin-bottom:3px; line-height:1.2; }
+.pkg-price {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.45rem; font-weight:600; color:var(--amber); line-height:1; margin-bottom:6px;
+}
+.pkg-desc { font-size:.62rem; color:var(--text-muted); line-height:1.5; }
+
+/* ── PILLARS ── */
+.pillars { width:100%; display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.pillar {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:12px; padding:14px 12px;
+  display:flex; flex-direction:column; gap:6px;
+  box-shadow:var(--shadow-sm);
+  will-change:transform,opacity;
+}
+.pillar-icon {
+  width:30px; height:30px; border-radius:8px;
+  background:var(--amber-bg); border:1px solid rgba(139,69,19,.15);
+  display:flex; align-items:center; justify-content:center; font-size:.9rem;
+}
+.pillar-title { font-size:.73rem; font-weight:700; color:var(--text-1); line-height:1.2; }
+.pillar-desc { font-size:.62rem; color:var(--text-muted); line-height:1.45; }
+
+/* ── CTA ZONE ── */
+.cta-zone { width:100%; display:flex; flex-direction:column; gap:10px; }
+.btn-primary {
+  width:100%; padding:15px 24px;
+  background:var(--amber); color:white;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.76rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+  border:none; border-radius:12px; cursor:pointer; text-decoration:none;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  box-shadow:0 4px 20px rgba(139,69,19,0.32);
+  position:relative; overflow:hidden;
+  will-change:transform;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-primary::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.14) 0%,transparent 60%);
+  pointer-events:none;
+}
+.btn-primary:active { transform:scale(0.97)!important; box-shadow:0 2px 8px rgba(139,69,19,.25)!important; }
+.btn-primary svg { width:14px; height:14px; flex-shrink:0; }
+
+.btn-row2 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.btn-sec {
+  padding:12px 10px;
+  background:var(--bg-card); border:1.5px solid var(--border-md);
+  border-radius:12px; color:var(--amber-mid);
+  font-size:.62rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  cursor:pointer; text-decoration:none;
+  box-shadow:var(--shadow-sm);
+  will-change:transform;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.btn-sec:hover { border-color:var(--amber); background:var(--amber-bg); }
+.btn-sec:active { transform:scale(0.96)!important; }
+.btn-sec svg { width:16px; height:16px; flex-shrink:0; }
+
+/* ── CONTACT STRIP ── */
+.contact-strip { width:100%; display:flex; flex-direction:column; gap:8px; }
+.contact-row {
+  display:flex; align-items:center; gap:12px;
+  padding:13px 16px; background:var(--bg-card);
+  border:1px solid var(--border); border-radius:12px;
+  text-decoration:none;
+  box-shadow:var(--shadow-sm);
+  will-change:transform,opacity;
+}
+.contact-ico {
+  width:34px; height:34px; border-radius:9px;
+  background:var(--amber-bg); border:1px solid rgba(139,69,19,.15);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.contact-ico svg { width:14px; height:14px; color:var(--amber); }
+.contact-body { flex:1; }
+.contact-key {
+  font-size:.52rem; font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--amber); margin-bottom:1px;
+}
+.contact-val { font-size:.7rem; font-weight:500; color:var(--text-2); }
+.contact-arr { color:var(--amber-pale); font-size:1rem; }
+
+/* ── SHARE OVERLAY ── */
+.overlay {
+  position:fixed; inset:0; z-index:9000;
+  background:rgba(28,16,8,0.62);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity .35s ease;
+}
+.overlay.open { opacity:1; pointer-events:auto; }
+.overlay-card {
+  background:var(--bg-warm); border-radius:22px;
+  width:92%; max-width:400px; max-height:92vh;
+  overflow-y:auto; padding:28px 22px 26px;
+  box-shadow:0 32px 64px rgba(0,0,0,0.28);
+  transform:translateY(24px) scale(0.96);
+  transition:transform .38s cubic-bezier(.23,1,.32,1);
+  display:flex; flex-direction:column; align-items:center; gap:18px;
+}
+.overlay.open .overlay-card { transform:translateY(0) scale(1); }
+.overlay-close {
+  align-self:flex-end;
+  width:34px; height:34px; border-radius:50%;
+  background:white; border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:1rem; color:var(--text-2);
+  transition:var(--t); flex-shrink:0;
+}
+.overlay-close:hover { background:var(--amber-bg); border-color:var(--amber); }
+.overlay-brand { display:flex; flex-direction:column; align-items:center; gap:7px; }
+.overlay-logo-wrap { display:flex; align-items:center; gap:10px; }
+.overlay-bee-img { width:52px; height:52px; object-fit:contain; }
+.overlay-name {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem; font-weight:600; color:var(--text-1);
+}
+.overlay-name span { color:var(--amber); }
+.overlay-sub {
+  font-size:.58rem; font-weight:700; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--amber);
+}
+.overlay-rule { width:50px; height:1.5px; background:linear-gradient(90deg,transparent,var(--amber-pale),transparent); }
+.overlay-qr-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:9px;
+  padding:18px; background:white; border-radius:16px;
+  border:1px solid var(--border); box-shadow:var(--shadow-sm);
+}
+.overlay-qr { width:180px; height:180px; border-radius:8px; display:block; }
+.overlay-scan-label {
+  font-size:.56rem; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--text-muted);
+}
+.overlay-url { font-size:.72rem; font-weight:700; color:var(--amber-mid); letter-spacing:.06em; }
+.overlay-details { width:100%; display:flex; flex-direction:column; gap:8px; }
+.overlay-detail-row {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 14px; background:white;
+  border:1px solid var(--border); border-radius:11px;
+  text-decoration:none; transition:var(--t);
+}
+.overlay-detail-row:hover { border-color:var(--border-md); transform:translateX(3px); }
+.overlay-detail-icon {
+  width:32px; height:32px; border-radius:8px;
+  background:var(--amber-bg); border:1px solid rgba(139,69,19,.15);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.overlay-detail-icon svg { width:13px; height:13px; color:var(--amber); }
+.overlay-detail-body { flex:1; }
+.overlay-detail-key {
+  font-size:.5rem; font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--amber); margin-bottom:1px;
+}
+.overlay-detail-val { font-size:.68rem; font-weight:500; color:var(--text-2); }
+.overlay-detail-arr { color:var(--amber-pale); font-size:.9rem; }
+.overlay-services { width:100%; display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
+.overlay-svc-pill {
+  padding:5px 11px; background:white; border:1px solid var(--border);
+  border-radius:20px; font-size:.58rem; font-weight:600; color:var(--amber-mid);
+}
+.overlay-footer {
+  font-size:.52rem; font-weight:600; letter-spacing:.1em;
+  color:var(--text-muted); text-transform:uppercase; text-align:center;
+}
+
+/* ── FOOTER ── */
+.footer {
+  width:100%; display:flex; flex-direction:column;
+  align-items:center; gap:5px; padding-top:4px;
+}
+.footer-text { font-size:.6rem; font-weight:600; letter-spacing:.12em; color:var(--text-muted); text-transform:uppercase; }
+.footer-copy { font-size:.54rem; color:rgba(74,46,20,.30); letter-spacing:.06em; }
+
+/* ── TOAST ── */
+.toast {
+  position:fixed; bottom:24px; left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:var(--text-1); color:white;
+  border-radius:10px; padding:11px 18px;
+  font-size:.7rem; font-weight:500; letter-spacing:.04em;
+  opacity:0; transition:all .42s cubic-bezier(.23,1,.32,1);
+  z-index:9999; white-space:nowrap; pointer-events:none;
+  box-shadow:0 6px 24px rgba(0,0,0,0.28);
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media(max-width:380px) {
+  .pkg-grid { grid-template-columns:1fr; }
+  .btn-row2 { grid-template-columns:1fr; }
+  .pillars { grid-template-columns:1fr; }
+  .stats-row { grid-template-columns:repeat(2,1fr); }
+  .card-scene { height:218px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-dots"></div>
+<div class="toast" id="toast"></div>
+
+<div class="page" id="page">
+
+  <!-- Logo Header -->
+  <div class="logo-header" id="logoHeader">
+    <div class="logo-mark">
+      <img class="logo-main-img" src="CV-2-2.png" alt="CveeBee">
+    </div>
+    <div class="logo-rule"></div>
+    <div class="logo-tagline">Smart · Stunning · Job-Ready CVs</div>
+  </div>
+
+  <!-- 3D Flip Card -->
+  <div class="card-scene" id="flipCard" role="button" aria-label="Tap to flip business card" tabindex="0">
+    <div class="card-flipper" id="cardFlipper">
+
+      <!-- FRONT FACE -->
+      <div class="card-face card-front">
+        <div class="c-corner c-tl"></div>
+        <div class="c-corner c-br"></div>
+
+        <div class="front-top">
+          <div class="front-logo-wrap">
+            <img class="front-bee-img" src="CV-H-Icon.png" alt="CveeBee">
+            <div class="front-brand">
+              <div class="front-brand-name">Cvee<span>Bee</span></div>
+              <div class="front-brand-sub">CV Writing · UK</div>
+            </div>
+          </div>
+          <div class="front-badge">
+            <div class="front-badge-flag">🇬🇧</div>
+            <div class="front-badge-label">London, UK</div>
+          </div>
+        </div>
+
+        <div class="front-pills">
+          <span class="front-pill">From £10</span>
+          <span class="front-pill">ATS Optimised</span>
+          <span class="front-pill hot">24–48h</span>
+        </div>
+
+        <div class="front-bottom">
+          <div class="front-tagline">"Transform Your CV Into<br>an Interview Magnet."</div>
+          <div class="front-url">www.cveebee.co.uk</div>
+        </div>
+
+        <div class="flip-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M1 4v6h6M23 20v-6h-6"/>
+            <path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/>
+          </svg>
+          Tap to flip
+        </div>
+      </div>
+
+      <!-- BACK FACE -->
+      <div class="card-face card-back">
+        <div class="back-qr-wrap">
+          <canvas id="qrCanvas" class="back-qr" width="120" height="120"></canvas>
+        </div>
+        <div class="back-scan">Scan to visit · cveebee.co.uk</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Overlay -->
+  <div class="overlay" id="shareOverlay">
+    <div class="overlay-card">
+      <button class="overlay-close" id="overlayClose">✕</button>
+      <div class="overlay-brand">
+        <div class="overlay-logo-wrap">
+          <img class="overlay-bee-img" src="CV-H-Icon.png" alt="CveeBee">
+          <div class="overlay-name">Cvee<span>Bee</span></div>
+        </div>
+        <div class="overlay-sub">Professional CV Writing · UK</div>
+      </div>
+      <div class="overlay-rule"></div>
+      <div class="overlay-qr-wrap">
+        <canvas id="qrCanvasOverlay" class="overlay-qr" width="180" height="180"></canvas>
+        <div class="overlay-scan-label">Scan to visit website</div>
+        <div class="overlay-url">www.cveebee.co.uk</div>
+      </div>
+      <div class="overlay-details">
+        <a href="https://www.cveebee.co.uk" target="_blank" rel="noopener" class="overlay-detail-row">
+          <div class="overlay-detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
+          <div class="overlay-detail-body"><div class="overlay-detail-key">Website</div><div class="overlay-detail-val">www.cveebee.co.uk</div></div>
+          <div class="overlay-detail-arr">›</div>
+        </a>
+        <a href="mailto:buzz.cveebee@gmail.com" class="overlay-detail-row">
+          <div class="overlay-detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div class="overlay-detail-body"><div class="overlay-detail-key">Email</div><div class="overlay-detail-val">buzz.cveebee@gmail.com</div></div>
+          <div class="overlay-detail-arr">›</div>
+        </a>
+        <a href="tel:+442079460958" class="overlay-detail-row">
+          <div class="overlay-detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.97 12a19.79 19.79 0 01-3.07-8.67A2 2 0 012.88 1.16h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+          <div class="overlay-detail-body"><div class="overlay-detail-key">Phone</div><div class="overlay-detail-val">+44 20 7946 0958</div></div>
+          <div class="overlay-detail-arr">›</div>
+        </a>
+        <a href="https://wa.me/442079460958" target="_blank" rel="noopener" class="overlay-detail-row">
+          <div class="overlay-detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></div>
+          <div class="overlay-detail-body"><div class="overlay-detail-key">WhatsApp</div><div class="overlay-detail-val">+44 20 7946 0958</div></div>
+          <div class="overlay-detail-arr">›</div>
+        </a>
+        <a href="https://www.instagram.com/cveebeeofficial/" target="_blank" rel="noopener" class="overlay-detail-row">
+          <div class="overlay-detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+          <div class="overlay-detail-body"><div class="overlay-detail-key">Instagram</div><div class="overlay-detail-val">@cveebeeofficial</div></div>
+          <div class="overlay-detail-arr">›</div>
+        </a>
+        <a href="https://www.linkedin.com/in/cveebee/" target="_blank" rel="noopener" class="overlay-detail-row">
+          <div class="overlay-detail-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div>
+          <div class="overlay-detail-body"><div class="overlay-detail-key">LinkedIn</div><div class="overlay-detail-val">CveeBee</div></div>
+          <div class="overlay-detail-arr">›</div>
+        </a>
+      </div>
+      <div class="overlay-services">
+        <span class="overlay-svc-pill">CV Writing</span>
+        <span class="overlay-svc-pill">ATS Optimization</span>
+        <span class="overlay-svc-pill">Cover Letters</span>
+        <span class="overlay-svc-pill">LinkedIn Review</span>
+        <span class="overlay-svc-pill">Interview Coaching</span>
+      </div>
+      <div class="overlay-footer">🇬🇧 Proudly serving UK professionals · London</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="stat-num" data-target="500" data-suffix="+">0</div><div class="stat-lbl">Happy Clients</div></div>
+    <div class="stat-card"><div class="stat-num" data-target="98" data-suffix="%">0</div><div class="stat-lbl">Success Rate</div></div>
+    <div class="stat-card"><div class="stat-num" data-target="4.9" data-suffix="★" data-decimal="1">0</div><div class="stat-lbl">Avg Rating</div></div>
+    <div class="stat-card"><div class="stat-num" data-target="24" data-suffix="h">0</div><div class="stat-lbl">Delivery</div></div>
+  </div>
+
+  <!-- Packages -->
+  <div class="section" id="pkgSection">
+    <div class="sec-head">
+      <div class="sec-eye">Our Services</div>
+      <div class="sec-title">CV Packages</div>
+      <div class="sec-rule"></div>
+    </div>
+    <div class="pkg-grid">
+      <a href="https://www.cveebee.co.uk/pricing" target="_blank" rel="noopener" class="pkg-card">
+        <span class="pkg-emoji">🎓</span>
+        <div class="pkg-name">Student Starter</div>
+        <div class="pkg-price">£10</div>
+        <div class="pkg-desc">CV polish, 1:1 Zoom coaching &amp; job app sign-ups</div>
+      </a>
+      <a href="https://www.cveebee.co.uk/pricing" target="_blank" rel="noopener" class="pkg-card">
+        <span class="pkg-emoji">✏️</span>
+        <div class="pkg-name">Basic Edit</div>
+        <div class="pkg-price">£25</div>
+        <div class="pkg-desc">Light edits, grammar checks, clean layout</div>
+      </a>
+      <a href="https://www.cveebee.co.uk/pricing" target="_blank" rel="noopener" class="pkg-card featured">
+        <div class="pkg-best">Best Value</div>
+        <span class="pkg-emoji">🖋️</span>
+        <div class="pkg-name">Complete Rewrite</div>
+        <div class="pkg-price">£40</div>
+        <div class="pkg-desc">Full ATS rewrite, keywords, modern design</div>
+      </a>
+      <a href="https://www.cveebee.co.uk/pricing" target="_blank" rel="noopener" class="pkg-card">
+        <span class="pkg-emoji">🚀</span>
+        <div class="pkg-name">Premium Package</div>
+        <div class="pkg-price">£60</div>
+        <div class="pkg-desc">Rewrite + Cover Letter + LinkedIn + coaching</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Pillars -->
+  <div class="section" id="pillarsSection">
+    <div class="sec-head">
+      <div class="sec-eye">Why Us</div>
+      <div class="sec-title">Our Edge</div>
+      <div class="sec-rule"></div>
+    </div>
+    <div class="pillars">
+      <div class="pillar"><div class="pillar-icon">🤖</div><div class="pillar-title">ATS Optimised</div><div class="pillar-desc">Beat the bots, reach human eyes</div></div>
+      <div class="pillar"><div class="pillar-icon">⚡</div><div class="pillar-title">24–48h Delivery</div><div class="pillar-desc">Fast without sacrificing quality</div></div>
+      <div class="pillar"><div class="pillar-icon">🇬🇧</div><div class="pillar-title">UK Experts</div><div class="pillar-desc">British recruitment standards</div></div>
+      <div class="pillar"><div class="pillar-icon">🏆</div><div class="pillar-title">Achievement-Led</div><div class="pillar-desc">ROI-focused, not duty lists</div></div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-zone" id="ctaZone">
+    <a href="https://www.cveebee.co.uk/pricing" target="_blank" rel="noopener" class="btn-primary" id="ctaBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+      Get Your CV Transformed
+    </a>
+    <div class="btn-row2">
+      <button class="btn-sec" onclick="downloadVCard()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+        Save Contact
+      </button>
+      <button class="btn-sec" onclick="nativeShare()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        Share
+      </button>
+      <button class="btn-sec" onclick="openShareOverlay()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        QR Code
+      </button>
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <div class="contact-strip" id="contactStrip">
+    <a href="https://www.cveebee.co.uk" target="_blank" rel="noopener" class="contact-row">
+      <div class="contact-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
+      <div class="contact-body"><div class="contact-key">Website</div><div class="contact-val">www.cveebee.co.uk</div></div>
+      <div class="contact-arr">›</div>
+    </a>
+    <a href="mailto:buzz.cveebee@gmail.com" class="contact-row">
+      <div class="contact-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+      <div class="contact-body"><div class="contact-key">Email</div><div class="contact-val">buzz.cveebee@gmail.com</div></div>
+      <div class="contact-arr">›</div>
+    </a>
+    <a href="tel:+442079460958" class="contact-row">
+      <div class="contact-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.97 12a19.79 19.79 0 01-3.07-8.67A2 2 0 012.88 1.16h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+      <div class="contact-body"><div class="contact-key">Phone</div><div class="contact-val">+44 20 7946 0958</div></div>
+      <div class="contact-arr">›</div>
+    </a>
+    <a href="https://wa.me/442079460958" target="_blank" rel="noopener" class="contact-row">
+      <div class="contact-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></div>
+      <div class="contact-body"><div class="contact-key">WhatsApp</div><div class="contact-val">+44 20 7946 0958</div></div>
+      <div class="contact-arr">›</div>
+    </a>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-text">🇬🇧 Proudly serving UK professionals · London</div>
+    <div class="footer-copy">© 2026 CveeBee · All rights reserved · 24/7 Support</div>
+  </div>
+
+</div><!-- /.page -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   GSAP SETUP
+═══════════════════════════════════════════════════════ */
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+/* ── 1. PAGE ENTRANCE: fade + slide up ── */
+gsap.to('#page', { opacity:1, duration:0 }); // reset inline opacity
+
+const tl = gsap.timeline({ defaults:{ ease:'power3.out' } });
+
+tl.from('#logoHeader', { y:-28, opacity:0, duration:.8 })
+  .from('#flipCard',   { y:32, opacity:0, duration:.85, scale:.97 }, '-=0.4')
+  .from('#statsRow .stat-card', {
+    y:18, opacity:0, duration:.6, stagger:.08
+  }, '-=0.3');
+
+/* ── 2. SCROLL-TRIGGERED REVEALS ── */
+// Packages stagger
+gsap.from('#pkgSection .pkg-card', {
+  scrollTrigger:{ trigger:'#pkgSection', start:'top 85%', once:true },
+  y:24, opacity:0, duration:.65, stagger:.1, ease:'power3.out'
+});
+
+// Pillars stagger
+gsap.from('#pillarsSection .pillar', {
+  scrollTrigger:{ trigger:'#pillarsSection', start:'top 88%', once:true },
+  y:20, opacity:0, duration:.6, stagger:.09, ease:'power3.out'
+});
+
+// CTA zone
+gsap.from('#ctaZone', {
+  scrollTrigger:{ trigger:'#ctaZone', start:'top 88%', once:true },
+  y:22, opacity:0, duration:.7, ease:'power3.out'
+});
+
+// Contact rows
+gsap.from('#contactStrip .contact-row', {
+  scrollTrigger:{ trigger:'#contactStrip', start:'top 90%', once:true },
+  x:-18, opacity:0, duration:.55, stagger:.1, ease:'power3.out'
+});
+
+/* ── 3. STAT COUNT-UP on scroll ── */
+var statsAnimated = false;
+ScrollTrigger.create({
+  trigger:'#statsRow',
+  start:'top 82%',
+  once:true,
+  onEnter:function() {
+    if (statsAnimated) return;
+    statsAnimated = true;
+    document.querySelectorAll('.stat-num[data-target]').forEach(function(el) {
+      var target  = parseFloat(el.dataset.target);
+      var suffix  = el.dataset.suffix || '';
+      var decimal = el.dataset.decimal ? parseInt(el.dataset.decimal) : 0;
+      var obj     = { val: 0 };
+      gsap.to(obj, {
+        val: target,
+        duration: 1.6,
+        ease: 'power2.out',
+        onUpdate: function() {
+          el.textContent = obj.val.toFixed(decimal) + suffix;
+        },
+        onComplete: function() {
+          el.textContent = target.toFixed(decimal) + suffix;
+        }
+      });
+    });
+  }
+});
+
+/* ── 4. MAGNETIC CTA BUTTON ── */
+var ctaBtn = document.getElementById('ctaBtn');
+var ctaMagnet = { x:0, y:0 };
+
+ctaBtn.addEventListener('mousemove', function(e) {
+  var rect = ctaBtn.getBoundingClientRect();
+  var cx = rect.left + rect.width  / 2;
+  var cy = rect.top  + rect.height / 2;
+  var dx = e.clientX - cx;
+  var dy = e.clientY - cy;
+  gsap.to(ctaBtn, {
+    x: dx * 0.28,
+    y: dy * 0.22,
+    duration: .4,
+    ease:'power2.out',
+    overwrite:'auto'
+  });
+});
+
+ctaBtn.addEventListener('mouseleave', function() {
+  gsap.to(ctaBtn, { x:0, y:0, duration:.5, ease:'elastic.out(1,0.5)', overwrite:'auto' });
+});
+
+/* ── 5. PKG CARD + PILLAR HOVER via GSAP ── */
+document.querySelectorAll('.pkg-card, .pillar').forEach(function(el) {
+  el.addEventListener('mouseenter', function() {
+    gsap.to(el, { y:-4, boxShadow:'0 14px 38px rgba(139,69,19,0.20)', duration:.3, ease:'power2.out', overwrite:'auto' });
+  });
+  el.addEventListener('mouseleave', function() {
+    gsap.to(el, { y:0, boxShadow:'0 2px 14px rgba(139,69,19,0.08)', duration:.35, ease:'power2.out', overwrite:'auto' });
+  });
+});
+
+/* ── 6. CONTACT ROW HOVER via GSAP ── */
+document.querySelectorAll('.contact-row').forEach(function(el) {
+  el.addEventListener('mouseenter', function() {
+    gsap.to(el, { x:5, duration:.25, ease:'power2.out', overwrite:'auto' });
+  });
+  el.addEventListener('mouseleave', function() {
+    gsap.to(el, { x:0, duration:.3, ease:'power2.out', overwrite:'auto' });
+  });
+});
+
+/* ═══════════════════════════════════════════════════════
+   3D FLIP CARD
+═══════════════════════════════════════════════════════ */
+var flipCard  = document.getElementById('flipCard');
+var qrDone    = false;
+
+function generateQROnCanvas(canvasId, size) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  try {
+    var qr = qrcode(0,'M');
+    qr.addData('https://www.cveebee.co.uk');
+    qr.make();
+    var mods     = qr.getModuleCount();
+    var cellSize = size / mods;
+    var ctx      = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0,0,size,size);
+    ctx.fillStyle = '#1C1008';
+    for (var r=0; r<mods; r++) {
+      for (var c=0; c<mods; c++) {
+        if (qr.isDark(r,c)) {
+          ctx.fillRect(
+            Math.round(c*cellSize), Math.round(r*cellSize),
+            Math.ceil(cellSize),    Math.ceil(cellSize)
+          );
+        }
+      }
+    }
+  } catch(e) {
+    console.warn('QR generation failed', e);
+  }
+}
+
+// Generate both QR codes immediately on load (library already bundled)
+window.addEventListener('DOMContentLoaded', function() {
+  generateQROnCanvas('qrCanvas', 96);
+  generateQROnCanvas('qrCanvasOverlay', 180);
+});
+// Also try right now in case DOMContentLoaded already fired
+generateQROnCanvas('qrCanvas', 96);
+generateQROnCanvas('qrCanvasOverlay', 180);
+
+flipCard.addEventListener('click', function() {
+  flipCard.classList.toggle('flipped');
+});
+
+flipCard.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    flipCard.classList.toggle('flipped');
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   SHARE OVERLAY
+═══════════════════════════════════════════════════════ */
+var overlay     = document.getElementById('shareOverlay');
+var overlayClose= document.getElementById('overlayClose');
+
+function openShareOverlay() {
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeShareOverlay() {
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+overlayClose.addEventListener('click', closeShareOverlay);
+overlay.addEventListener('click', function(e) {
+  if (e.target === overlay) closeShareOverlay();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeShareOverlay();
+});
+
+/* ── Native Share (OS share sheet) ── */
+function nativeShare() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'CveeBee — Smart, Stunning, Job-Ready CVs',
+      text:  'Transform your CV into an interview magnet. ATS-optimised CVs from £10. 24–48h delivery.',
+      url:   'https://www.cveebee.co.uk'
+    }).catch(function(){});
+  } else {
+    // Fallback: copy URL to clipboard
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText('https://www.cveebee.co.uk').then(function() {
+        showToast('🔗 Link copied to clipboard!');
+      });
+    } else {
+      openShareOverlay();
+    }
+  }
+}
+
+/* ── Toast ── */
+var toastTimer;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3200);
+}
+
+/* ── vCard Download ── */
+function downloadVCard() {
+  var v = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    'FN:CveeBee CV Services',
+    'ORG:CveeBee',
+    'TITLE:Professional CV Writing Services — UK',
+    'URL:https://www.cveebee.co.uk',
+    'EMAIL:buzz.cveebee@gmail.com',
+    'TEL:+442079460958',
+    'ADR:;;London;;;UK',
+    'NOTE:Transform Your CV Into an Interview Magnet. ATS-Optimised. From £10. 24-48h.',
+    'X-SOCIALPROFILE;type=instagram:https://www.instagram.com/cveebeeofficial/',
+    'X-SOCIALPROFILE;type=linkedin:https://www.linkedin.com/in/cveebee/',
+    'END:VCARD'
+  ].join('\n');
+
+  var b = new Blob([v], { type:'text/vcard;charset=utf-8' });
+  var u = URL.createObjectURL(b);
+  var a = document.createElement('a');
+  a.href = u; a.download = 'CveeBee.vcf';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(u);
+  showToast('✓ CveeBee contact saved!');
+}
+</script>
+</body>
+</html>
