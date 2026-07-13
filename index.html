@@ -11,8 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
-<!-- QR Code bundled -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<!-- QR Code uses static qr.png -->
 <style>
 /* ── TOKENS ── */
 :root {
@@ -527,7 +526,7 @@ body {
       <!-- BACK FACE -->
       <div class="card-face card-back">
         <div class="back-qr-wrap">
-          <canvas id="qrCanvas" class="back-qr" width="120" height="120"></canvas>
+          <img src="qr.png" alt="CveeBee QR Code" class="back-qr">
         </div>
         <div class="back-scan">Scan to visit · cveebee.co.uk</div>
       </div>
@@ -547,7 +546,7 @@ body {
       </div>
       <div class="overlay-rule"></div>
       <div class="overlay-qr-wrap">
-        <canvas id="qrCanvasOverlay" class="overlay-qr" width="180" height="180"></canvas>
+        <img src="qr.png" alt="CveeBee QR Code" class="overlay-qr">
         <div class="overlay-scan-label">Scan to visit website</div>
         <div class="overlay-url">www.cveebee.co.uk</div>
       </div>
@@ -838,44 +837,6 @@ document.querySelectorAll('.contact-row').forEach(function(el) {
    3D FLIP CARD
 ═══════════════════════════════════════════════════════ */
 var flipCard  = document.getElementById('flipCard');
-var qrDone    = false;
-
-function generateQROnCanvas(canvasId, size) {
-  var canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  try {
-    var qr = qrcode(0,'M');
-    qr.addData('https://www.cveebee.co.uk');
-    qr.make();
-    var mods     = qr.getModuleCount();
-    var cellSize = size / mods;
-    var ctx      = canvas.getContext('2d');
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0,0,size,size);
-    ctx.fillStyle = '#1C1008';
-    for (var r=0; r<mods; r++) {
-      for (var c=0; c<mods; c++) {
-        if (qr.isDark(r,c)) {
-          ctx.fillRect(
-            Math.round(c*cellSize), Math.round(r*cellSize),
-            Math.ceil(cellSize),    Math.ceil(cellSize)
-          );
-        }
-      }
-    }
-  } catch(e) {
-    console.warn('QR generation failed', e);
-  }
-}
-
-// Generate both QR codes immediately on load (library already bundled)
-window.addEventListener('DOMContentLoaded', function() {
-  generateQROnCanvas('qrCanvas', 96);
-  generateQROnCanvas('qrCanvasOverlay', 180);
-});
-// Also try right now in case DOMContentLoaded already fired
-generateQROnCanvas('qrCanvas', 96);
-generateQROnCanvas('qrCanvasOverlay', 180);
 
 flipCard.addEventListener('click', function() {
   flipCard.classList.toggle('flipped');
