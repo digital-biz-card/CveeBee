@@ -82,9 +82,16 @@ body {
 .logo-mark {
   display:flex; align-items:center; gap:10px;
 }
-.logo-main-img {height: 200px; /* Increase to your desired size */
-  width: auto; 
-  margin-bottom: -70px; /* Adjust this negative value to fix the gap */ }
+.logo-img-crop {
+  height:82px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.logo-main-img {
+  height:180px; width:auto;
+  display:block;
+  margin:-40px 0 -40px 0;
+  flex-shrink:0;
+}
 .logo-rule {
   width:52px; height:1.5px;
   background:linear-gradient(90deg,transparent,var(--amber-pale),transparent);
@@ -475,7 +482,9 @@ body {
   <!-- Logo Header -->
   <div class="logo-header" id="logoHeader">
     <div class="logo-mark">
-      <img class="logo-main-img" src="CV-2-2.png" alt="CveeBee">
+      <div class="logo-img-crop">
+        <img class="logo-main-img" src="CV-2-2.png" alt="CveeBee">
+      </div>
     </div>
     <div class="logo-rule"></div>
     <div class="logo-tagline">Smart · Stunning · Job-Ready CVs</div>
