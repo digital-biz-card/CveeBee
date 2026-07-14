@@ -46,7 +46,7 @@ html { scroll-behavior:smooth; }
 body {
   font-family:'Plus Jakarta Sans',sans-serif;
   background:var(--bg);
-  min-height:100vh;
+  min-height:100dvh;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -68,8 +68,7 @@ body {
 .page {
   position:relative; z-index:1;
   width:100%; max-width:430px;
-  padding:8px 18px 0;
-  padding-top:max(8px, env(safe-area-inset-top));
+  padding:0 18px;
   display:flex; flex-direction:column;
   align-items:center; gap:28px;
   opacity:0; /* GSAP controls this */
@@ -732,7 +731,7 @@ gsap.to('#page', { opacity:1, duration:0 }); // reset inline opacity
 
 const tl = gsap.timeline({ defaults:{ ease:'power3.out' } });
 
-tl.from('#logoHeader', { y:-28, opacity:0, duration:.8 })
+tl.from('#logoHeader', { opacity:0, duration:.6 })
   .from('#flipCard',   { y:32, opacity:0, duration:.85, scale:.97 }, '-=0.4')
   .from('#statsRow .stat-card', {
     y:18, opacity:0, duration:.6, stagger:.08
